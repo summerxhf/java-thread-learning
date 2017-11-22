@@ -137,7 +137,7 @@ int someValue3 = sharedObject.nonVolatile6;
 ----------
 
 
-#**<font size=4>volatile is not always enough</font>**
+# **<font size=4>volatile is not always enough</font>**
 &emsp;&emsp;即使volatile关键字保证变量读和写都直接从主存中读写,但是仍然有一些情况下,声明volatile变量是不足够的。
 &emsp;&emsp;在前面的解释中，一个线程写入了volatile共享计数器变量，volatile能够保证线程2总是看到的是最新的值。	
 &emsp;&emsp;实际上多个线程可以写入一个共享volatile变量中,并且正确的存储在主存中，前提是这个变量的新值不依赖于他之前的值。换句话说，如果一个线程写入volatile变量的值，就不要先读取他的值来计算他的下一个值。
@@ -154,7 +154,7 @@ int someValue3 = sharedObject.nonVolatile6;
 
 ----------
 
-#**<font size=4>when is volatile enough?</font>**
+# **<font size=4>when is volatile enough?</font>**
 &emsp;&emsp;正如前面提到的如果两个线程都在读取和写入一个共享变量，那么使用volatile关键字是不够的。在这种情况下，我们需要使用同步来保证变量的读取和写入是原子的。读取和写入volatile变量不会阻塞线程的读和写。为了这一点，我们需要使用synchronized关键字。
 &emsp;&emsp;可以用java.util.concurrent 包中的原子数据类型来替换synchronized块，例如AtomicLong或者AtomicReference等等。
 >&emsp;&emsp;In case only one thread reads and writes the value of a volatile variable and other threads only read the variable, then the reading threads are guaranteed to see the latest value written to the volatile variable. Without making the variable volatile, this would not be guaranteed.
