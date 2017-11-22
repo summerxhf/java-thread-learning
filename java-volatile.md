@@ -8,7 +8,7 @@
 
 
 
-#**<font size=4>java volatile可见性保证</font>**
+# **<font size=4>java volatile可见性保证</font>**
 &emsp;&emsp;java volatile关键字保证在每个线程共享该变量。
 	
 &emsp;&emsp;在多线程应用中，多线程操作没有volatile修饰的变量，每个线程使用他们的时候，复制该变量从主内存到cpu缓存中。在性能方面，如果你的电脑中包含多个cup（我理解还可能是多核），每个线程可能运行在不同的cpu上。每个线程复制不同的cup主内存到对应的cpu缓存中，如下图所示。
@@ -52,7 +52,7 @@ public class SharedObject {
 
 ----------
 
-#**<font size=4>java volatile Happens-Before (先行发生)Guarantee</font>**
+# **<font size=4>java volatile Happens-Before (先行发生)Guarantee</font>**
 从java5开始，volatile关键字不仅保证了变量从内存中读取和写入。实际上，volatile关键字也保证了如下：
 
  1. 如果线程A写入一个volatile变量，随后线程B读取相同的变量。那么变量对线程A来说在写入变量前就是可见的，对于B来说读取完变量后，对该变量也是可见的。
@@ -170,7 +170,7 @@ int someValue3 = sharedObject.nonVolatile6;
 
 ----------
 
-#**<font size=4>summary</font>**
+# **<font size=4>summary</font>**
 &emsp;&emsp;第一次使用markdown编辑器写文章感觉不错，哇咔咔。算是初步接触volatile关键字，大概了解，还是要多实践才会深刻。不能一口吃个胖子，都要和老黄牛一样，遇到了时不时地反复咀嚼。
 
 
