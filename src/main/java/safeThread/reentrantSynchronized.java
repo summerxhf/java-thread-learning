@@ -5,6 +5,7 @@ package safeThread;
  * Synchronized 可重复锁,举例.
  */
 public class ReentrantSynchronized {
+    public volatile int  a = 1;
     /**
      * main主线程.
      * @param args
