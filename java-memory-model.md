@@ -127,20 +127,34 @@ monitorexit，反应在java代码中也就是synchronized关键字，synchronize
 前半句是“线程内表现的串行语句”，后半句“指令重排”现象和“工作内存与主内存同步延迟”现象。
 &emsp;&emsp;java volatile和synchronized保证了线程的有序性,禁止指令重排列语义,而synchronized决定了持有同一个锁的两个同步块只能串行输入。
 ### <font size="3" > *JVM指令重排**
+>在执行程序时,为了提高性能,编译器和处理器会对指令做重排序。但是，JMM确保在不同的编译器和不同的处理器平台之上，通过插入特定类型的Memory
+Barrier（栅栏）来禁止特定类型的编译器重排序和处理器重排序，为上层提供一直的内存可见性保证。
+
+&emsp;&emsp; 1、编译器优化重排序：编译器在不改变单线程程序语义的前提下，可以重新安排语句的执行顺序。
+&emsp;&emsp;2、指令级并行的重排序：如果不存在数据依赖性，处理器可以改变语句对应机器指令的执行顺序。
+&emsp;&emsp;3、内存系统的重排序：处理器使用缓存和读写缓存，这使得加载和存储操作上看上去可能是乱序执行。
+
+**数据依赖性**
+&emsp;&emsp;如果两个操作访问同一个变量,其中一个为写操作,此时这两个操作之间存在数据依赖性。
+&emsp;&emsp;编译器和处理器不会改变存在数据依赖性关系的两个操作的执行顺序,即不会重排序。
+**as-if-serial**
+&emsp;&emsp;不管怎么重排序，单线程下的执行结果不能被改变，编译器、rentime和处理器都必须遵守as-if-serial。
 
 ### <font size="3" > *Happen-before原则 (先行发生原则)**
 
 
-&emsp;&emsp;**程序次序规则**：
-&emsp;&emsp;**管程锁定规则**：
-&emsp;&emsp;**volatile变量规则**：
-&emsp;&emsp;**线程启动规则**：
-&emsp;&emsp;**线程终止规则**：
-&emsp;&emsp;**线程中断规则**：
-&emsp;&emsp;**_对象终结规则_**：
-&emsp;&emsp;**传递性**：
+&emsp;&emsp;程序次序规则：一个线程内，按照代码顺序，书写在前面的操作先行发生于书写在后面的操作。
+&emsp;&emsp;锁定规则：一个unLock操作先行发生于后面对同一个锁额lock操作。
+&emsp;&emsp;volatile变量规则：对一个变量的写操作先行发生于后面对这个变量的读操作。
+&emsp;&emsp;传递规则：如果操作A先行发生于操作B，而操作B又先行发生于操作C，则可以得出操作A先行发生于操作C。
+&emsp;&emsp;线程启动规则：Thread对象的start()方法先行发生于此线程的每个一个动作。
+&emsp;&emsp;线程中断规则：对线程interrupt()方法的调用先行发生于被中断线程的代码检测到中断事件的发生。
+&emsp;&emsp;线程终结规则：线程中所有的操作都先行发生于线程的终止检测，我们可以通过Thread.join()方法结束、Thread.isAlive()的返回值手段检测到线程已经终止执行。
+&emsp;&emsp;对象终结规则：一个对象的初始化完成先行发生于他的finalize()方法的开始。
+&emsp;&emsp;这8条原则摘自《深入理解Java虚拟机》。
 
 
+<font size="2">参考：http://tutorials.jenkov.com/java-concurrency/java-memory-model.html</font>
 
 
 
