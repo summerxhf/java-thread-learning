@@ -1,6 +1,5 @@
 package thread_create.callable;
 
-import thread_create.Rabbit;
 
 import java.util.concurrent.*;
 
