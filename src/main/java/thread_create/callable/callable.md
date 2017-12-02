@@ -44,6 +44,7 @@ public class CallableThreadExample implements Callable {
     }
 }
 
+```
 实现过程
 
 （1）创建类实现Callable接口，并实现接口中的call（）方法，该call（）方法作为线程的执行体，并且有返回值。
@@ -51,7 +52,6 @@ public class CallableThreadExample implements Callable {
 （3）使用创建的FutureTask对象实例作为Thread对象的参数，并启动线程。
 （4）调用FutureTask对象的get（）方法来获得子线程执行结束后的返回值。
 
-```
 # <font size="4">**2、在上面的基础Callable + FutureTask上加上泛型Callable<>**
 ```
 package thread_create.callable;
@@ -131,10 +131,17 @@ public class CallableThreadExample_Executor implements Callable<Integer> {
 }
 
 ```
+如下图是使用Callable+Executors的实现过程。
+![这里写图片描述](http://img.blog.csdn.net/20150904191711567?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+
+这里用的是Callable任务，线程池也可以提交Runnable的线程体。
+线程池的结构图如下：
+![这里写图片描述](http://img.blog.csdn.net/20171202224435682?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZXN1bW1lcmZvcmV2ZXI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+在这里就先不深究了，具体源码是怎么实现的后续博客再解释。
 # <font size="4">**4.与Runnable比较**
 使用实现Callable接口,实现call()方法，与实现Runnable接口和继承Thread方式比较如下:
-(1)上篇中所说的两种实现线程的方式都是实现方法run(),run()为线程执行体,但是run()方法并不能有携带返回值的线程体。
-并且不能抛出异常，只能用try catch, 因为Runnable接口中并没有对外声明异常。
+(1)上篇中所说的两种实现线程的方式都是实现方法run(),run()为线程执行体,但是run()方法并不能有携带返回值的线程体。并且不能抛出异常，只能用try catch, 因为Runnable接口中并没有对外声明异常。
 （2）也没有返回值，run（）执行体方法是void类型，没有线程体的返回值。
 （3）使用Callable接口,可以解决上述两种问题,不但可以携带返回值也可以声明式异常。
 （4）Future表示异步计算的结果，它提供了检查计算是否完成方法，以等待计算的完成，并检索计算的结果。
