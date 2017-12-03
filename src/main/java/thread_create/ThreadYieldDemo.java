@@ -5,7 +5,7 @@ package thread_create;
  * 暂停自己,让出cpu调度.yield
  */
 public class ThreadYieldDemo extends Thread{
-    //yild 暂停线程,是一个静态方法.
+    //yield 暂停线程,是一个静态方法.
     public static void main(String[] args) throws InterruptedException {
         ThreadYieldDemo threadYieldDemo = new ThreadYieldDemo();
         Thread thread = new Thread(threadYieldDemo);//xinzheng
