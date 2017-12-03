@@ -15,6 +15,4 @@ public class ThreadMain {
         new Thread(player).start();
         new Thread(watcher).start();
     }
-
-
 }
