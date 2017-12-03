@@ -25,8 +25,8 @@ public class ThreadMain2 {
         proxy.start();
         proxy2.start();
         Thread.sleep(100);
-        proxy.stop();
-        proxy2.stop();
+        myThread.stop();
+        myThread2.stop();
     }
 
 }
