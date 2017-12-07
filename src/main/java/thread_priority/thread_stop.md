@@ -68,4 +68,57 @@ java8api文章中显示,该方法已经被废弃。
 如下图所示
 
 # 3、使用interrupt方法中断线程。
+```
+package thread_interrupt;
 
+/**
+ * Created by fang on 2017/12/7.
+ */
+public class MyThread extends Thread{
+    public void run(){
+        System.out.println("我是线程体....");
+    }
+
+}
+
+```
+thread interrupt  终止线程。
+```
+package thread_interrupt;
+
+/**
+ * Created by fang on 2017/12/7.
+ * interrupt线程终止.
+ */
+public class ThreadInterruptDemo {
+    public static void main(String[] args) throws InterruptedException {
+        MyThread myThread  = new MyThread();
+        myThread.start();
+        System.out.println("Starting thread...");
+        Thread.sleep(3000);
+        myThread.interrupt();//阻塞时推出阻塞状态.
+        Thread.sleep(3000);//休眠3s观察myThread阻塞状态.
+        System.out.println("stop application.......");
+    }
+}
+
+```
+interrupt为thread的一个方法，查看帮助文档：
+interrupt
+
+public void interrupt()
+
+除非中断当前线程本身总是允许,这个线程的checkAccess方法被调用时,这可能会导致一个SecurityException抛出。
+
+如果这个线程被阻塞的调用wait(),wait(long),或wait(long, int) Object类的方法,或join(),join(long),join(long, int),sleep(long),或sleep(long, int),这个类的方法,那么它的中断状态将被清除,它将接收一个InterruptedException。
+
+如果这个线程被阻塞的I / O操作在一个InterruptibleChannel通道将被关闭,线程的中断状态将被设置,线程会收到ClosedByInterruptException。
+
+如果这个线程被阻塞在Selector那么线程的中断状态将从选择操作,它会立即返回,可能与一个非零值,就像选择器的wakeup方法被调用。
+
+如果没有之前的条件举行这个线程的中断状态将被设置。
+
+中断一个线程不是活着不需要有任何影响。
+
+异常
+SecurityException——如果当前线程不能修改这个线程
