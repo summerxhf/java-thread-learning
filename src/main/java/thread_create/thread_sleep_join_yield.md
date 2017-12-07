@@ -22,5 +22,10 @@ wait()方法一般和notify()、notifyAll（）方法使用，这三个方法用
 
 
 
+//todo把interrupt 添加上interrupted 博客完整.
+//加上本篇的例子.
+//写死锁的博客,以及生产者和消费者模式.
+
+//继续current包中的对象,继续信号量等.
 
 
