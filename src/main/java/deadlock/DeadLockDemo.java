@@ -5,6 +5,8 @@ package deadlock;
  * 死锁简单示例.伪代码
  */
 public class DeadLockDemo {
+    Object lockA = new Object();
+    Object lockB = new Object();
     //死锁的示例.
     public void methodA(){
         synchronized (lockA){
@@ -32,7 +34,7 @@ public class DeadLockDemo {
 
     //避免死锁的伪代码.
 
-    public void methodA(){
+    public void methodA1(){
         synchronized (lockA){
             //.....
 
@@ -45,7 +47,7 @@ public class DeadLockDemo {
         }
     }
 
-    public void methodB(){
+    public void methodB1(){
         synchronized (lockA){
             //....
 
