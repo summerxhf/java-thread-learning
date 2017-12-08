@@ -27,3 +27,82 @@
 
 2、解决死锁的办法？
 
+1)避免死锁和预防死锁，不让系统陷入死锁状态。
+2）忽略死锁问题，如果死锁问题是非常罕见的，就让他发生并重启系统。这是windows和unix广泛采取的方法。
+3）
+>If you need to have multiple locks in your code, make sure everyone always acquire them in the same order.
+如果在代码中需要多个锁,确保代码每次请求他们的时候以相同的次序。
+
+避免嵌套锁。只需要所动需要锁定的东西，而不是整个对象，如果符合我们的要求。
+下面是典型的死锁例子，如下代码。
+```
+package deadlock;
+
+/**
+ * `Created by fang on 2017/12/8.
+ * 死锁简单示例.伪代码
+ */
+public class DeadLockDemo {
+    public void methodA(){
+        synchronized (lockA){
+            //.....
+
+
+
+
+            synchronized (lockB){
+                //...
+            }
+        }
+    }
+
+    public void methodB(){
+        synchronized (lockB){
+            //....
+
+
+            synchronized (lockA){
+                //......
+            }
+        }
+    }
+}
+
+```
+如上述伪代码,如果被多个线程调用可能会产生死锁。这是因为对象 A B 以不同的次序锁定。
+这是绝大多数的死锁的原因，所以想要避免他们，保证这些对象锁是按顺序进行的。
+
+上述代码我们这么解决死锁呢？
+上述根源是锁的顺序不对，对共享资源的锁形成了循环等待，我们只需要按照同样的次序锁定就了。
+解决方案伪代码如下。
+```
+//避免死锁的伪代码.
+
+    public void methodA(){
+        synchronized (lockA){
+            //.....
+
+
+
+
+            synchronized (lockB){
+                //...
+            }
+        }
+    }
+
+    public void methodB(){
+        synchronized (lockA){
+            //....
+
+
+            synchronized (lockB){
+                //......
+            }
+        }
+    }
+```
+我们对对象A B加锁两个方法并一致的锁的次序,解决了死锁问题。
+
+
+
