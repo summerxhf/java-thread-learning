@@ -5,7 +5,9 @@
 本片主要是利用生产者消费者模式解决线程的死锁。
 
 多线程生产者和消费者一个典型的多线程程序。一个生产者生产提供消费的东西，但是生产速度和消费速度是不同的。这就需要让生产者和消费者运行不同的线程，通过
-共享区域或者队列来协调他们。
+共享区域或者队列来协调他们。如下图所示：
+
+
 代码如下:
 ```
 package deadlock.comsumer_product_solution;
@@ -147,7 +149,142 @@ public class producerConsumerWithBlockingQueue {
 }
 
 ```
+如果有一个生产者和一个消费者,我们可以使用count down latch,代码如下:
+```
+package deadlock.comsumer_product_solution;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
+/**
+ * Created by fang on 2017/12/8.
+ * countdownlatch
+ */
+public class ProducerConsumerWithCountDownLatch {
+    public static class Producer implements Runnable {
+        private List<Integer> queue;
+        private CountDownLatch latch;
+        private int next = 0;
+
+        public Producer(List<Integer> queue,CountDownLatch latch) {
+            this.queue = queue;
+            this.latch=latch;
+        }
+
+        public void run() {
+            while (true) {
+                synchronized (queue) {
+                    queue.add(next);
+                    System.out.println(next + "producer");
+                    latch.countDown();
+                }
+                next++;
+            }
+        }
+    }
+
+    public static class Consumer implements Runnable {
+        private List<Integer> queue;
+        private CountDownLatch latch;
+
+        public Consumer(List<Integer> queue,CountDownLatch latch) {
+            this.queue = queue;
+            this.latch=latch;
+        }
+
+        public void run() {
+            while (true) {
+                Integer number=null;
+                synchronized (queue) {
+                    if (queue.size() > 0) {
+                        number = queue.remove(queue.size()-1);
+                        System.out.println(number+"consumer");
+                    }
+                }
+                if(number==null) {
+                    try {
+                        latch.await();
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+        }
+    }
+
+    public static void main(String args[]) throws Exception {
+        List<Integer> queue = new ArrayList<Integer>();
+        CountDownLatch latch=new CountDownLatch(1);
+        Thread producer1 = new Thread(new Producer(queue,latch));
+        Thread consumer1 = new Thread(new Consumer(queue,latch));
+        producer1.start();
+        consumer1.start();
+    }
+}
+
+
+```
+
+ 如果一个生产者和一个消费者,我们还可以使用Exchanger,代码如下:
+ ```
+ package deadlock.comsumer_product_solution;
+
+ import java.util.concurrent.Exchanger;
+
+ /**
+  * Created by fang on 2017/12/8.
+  * 使用exchanger.
+  */
+ public class ProducerConsumerWithExchanger {
+     public static class Producer implements Runnable {
+         private Exchanger<Integer> exchanger;
+         private int next = 0;
+
+         public Producer(Exchanger<Integer> exchanger) {
+             this.exchanger=exchanger;
+         }
+
+         public void run() {
+             while (true) {
+                 try {
+                     exchanger.exchange(next);
+                     System.out.println(next  +"producer");
+                 } catch (InterruptedException e) {
+                 }
+                 next++;
+             }
+         }
+     }
+
+     public static class Consumer implements Runnable {
+         private Exchanger<Integer> exchanger;
+         public Consumer(Exchanger<Integer> exchanger) {
+             this.exchanger=exchanger;
+         }
+
+         public void run() {
+             while (true) {
+                 try {
+                     System.out.println(exchanger.exchange(0) + "consumer");
+                 } catch (InterruptedException e) {
+                 }
+             }
+         }
+     }
+
+     public static void main(String args[]) throws Exception {
+         Exchanger<Integer> exchanger=new Exchanger<Integer>();
+         Thread producer1 = new Thread(new Producer(exchanger));
+         Thread consumer1 = new Thread(new Consumer(exchanger));
+         producer1.start();
+         consumer1.start();
+     }
+ }
+
+ ```
+
+ 以上几种方式就是实现生产者和消费者解决方案,同时也解决了死锁问题。
+ 对比以上几种方式，
 
 
 
