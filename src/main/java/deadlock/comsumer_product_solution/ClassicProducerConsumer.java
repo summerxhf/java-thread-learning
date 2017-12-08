@@ -1,13 +1,3 @@
-（十五）java并发编程--线程的死锁解决方案(生产者和消费者)
-
-上一篇中,主要了解了什么时候死锁，并且提出死锁的一个解决方案，多个锁要按照一定的顺序来。
-
-本片主要是利用生产者消费者模式解决线程的死锁。
-
-多线程生产者和消费者一个典型的多线程程序。一个生产者生产提供消费的东西，但是生产速度和消费速度是不同的。这就需要让生产者和消费者运行不同的线程，通过
-共享区域或者队列来协调他们。
-代码如下:
-```
 package deadlock.comsumer_product_solution;
 
 import java.util.ArrayList;
@@ -75,10 +65,3 @@ public class ClassicProducerConsumer {
         consumer2.start();
     }
 }
-
-```
-自从java1.5之后有很多容易的方式去实现生产者和消费者方案,最好的方式就是使用a blocking queue。
-
-
-
-
