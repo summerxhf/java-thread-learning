@@ -1,4 +1,6 @@
 (十七)java并发编程--任务执行之延迟任务和周期任务Timer的使用
+
+(十七)java并发编程--任务执行之线程池的使用
 大多数并发程序围绕着"任务执行"来构造的: 任务通常是一些抽象的且离散的工作单元。通过把一个用程序的共工作分解到多个任务中，可以简化程序的组织结构，
 提供一种自然的事务边界来优化错误恢复过程，以及提供一种自然的工作结构来提升并发性。
 # 1 在线程中执行任务
@@ -190,14 +192,243 @@ new Thread(runnable).start()
 线程池之工作者线程：从工作队列中获取一个线程，然后返回线程池并等待下一个任务。
 java类库提供了灵活的线程池以及默认配置，可以通过调用Executors中的静态工厂方法之一来创建一个线程池。
 ### 3.3.1 newFixedThreadPool
-
+固定线程池的长度,每提交一个任务就创建一个线程，直到达线程池的最大长度，这时线程池的规模将不会再变化（如果某个线程由于发生了未预期的Exception而结束
+那么线程池将会补充一个线程）。
 ### 3.3.2 newCachedThreadPool
-
+创建一个可缓存的线程池，如果线程池的当前规**模超过了处理需求时，****那么将会回收空闲的线程，**而当需求增加时，则添加新的线程，线程的规模不存在
+任何的限制。
 ### 3.3.3 newSingleThreadExecutor
-
+是一个单线程的Executor，它创建单个线程来执行任务，如果这个线程异常结束，会创建另外一个线程来替代。newSingleThreadExecutor能确保依照任务在队列中顺序
+来串行执行（如FIFO、FIFO、优先级）。
 ### 3.3.1 newScheduledThreadPool
+newScheduledThreadPool创建了一个**固定长度的线程池，**而且以**延迟或者定时的方式来执行任务，**类似Timer。
+
+“从单个线程串行执行”到“为每个任务分配一个线程”，变成基于线程池的策略，将对应用程序的稳定性产生重大的 影响：Web服务器不会再在高负载情况下执行失败。
+由于服务器不会创建千万个线程来争夺有限的CPU和内存资源，因此服务器的性能将平缓的降低。
+通过Executor，可以实现各种调优、管理、监视、记录日志、错误报告和其他功能，如果不使用任务的执行框架，增加这些功能是十分困难的。
 
 ## 3.4 Executor的生命周期
 
+可以创建一个Executor，但如何关闭Executor？Executor创建线程来执行任务。但JVM只有在所有（非守护）线程全部终止后才会退出（Executor所有线程自行完毕后退出）
+因此，无法正确的关闭Executor，JVM则将无法结束。
+Executor扩展了ExecutorService接口，添加了一些用于声明周期的管理办法（还有一些其他用于任务提交的便利方法），如下代码。
+
+```
+/**
+ * Created by fang on 2017/12/10.
+ * Executor 生命周期管理办法.
+ */
+public interface ExecutorService {
+    void shutdown();
+    List<Runnable> shutdownNow();
+    boolean isShutdown();
+    boolean isTerminated();
+    boolean awaitTermination (long timeout, TimeUnit unit) throws InterruptedException;
+
+    //.....一些其他用于任务提交的便利方法.
+}
+
+```
+shutdown():执行平缓的关闭过程，不再接受新任务，同时等待已经提交的任务执行完成（包括未开始执行的任务）。
+shutdownNow（）：执行粗暴的关闭过程，尝试取消所有运行中的任务，并且不再启动队列中尚未开始的任务。
+
+awaitTermination：等待ExecutorServer终止结束状态。通常在调用awaitTermination后会立即调用shutdown,从而产生同步的关闭ExecutorService效果。
+isTerminated：轮询Executor是否已经结束。
+如下代码所示。
+
+```
+package Executor;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Created by fang on 2017/12/10.
+ * 停止线程.
+ */
+public class ExecutorServiceExample {
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(20);
+        for(int i =0;i<100;i++){
+            executorService.submit(new NewTask());
+        }
+
+        executorService.shutdown();
+        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+    }
+}
+
+class NewTask implements Runnable{
+    public void run() {
+
+    }
+}
+
+```
 # 4 携带结果的任务Callable和Future
 
+之前的文章介绍过Callable和future，下面是callable future 和线程的方式来实现，如下代码。
+```
+package Executor;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.*;
+
+/**
+ * Created by fang on 2017/12/10.
+ * callable future ExecutorService example
+ */
+public class MyCallable implements Callable<String>{
+
+    public String call() throws Exception {
+        Thread.sleep(1000);
+
+        return Thread.currentThread().getName();
+    }
+
+    public static void main(String[] args) {
+        //get ExecutorService form Executors unility class ,thread pool is10
+        ExecutorService executor = Executors.newFixedThreadPool(10);
+        //create a list to hold the Future object associated with Callabel;
+        List<Future<String>> futurelist = new ArrayList<Future<String>>();
+
+        //create MyCallable instance
+        Callable<String> callable = new MyCallable();
+        for(int i=0;i<100;i++){
+            //submit Callable tasks to be executed by thread pool
+            Future<String> future = executor.submit(callable);
+            //add future to list ,we can get return value using future .
+            futurelist.add(future);
+        }
+
+        for(Future<String> future:futurelist){
+            try {
+                //print the return value of future ,notice the output delay in console
+                //because Future.get() waits for task to get completed.
+                System.out.println(new Date() + "::" + future.get());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //shut down the execuutor service now
+        executor.shutdown();
+    }
+}
+
+```
+输出结果如下:
+Sun Dec 10 16:48:25 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-10
+Sun Dec 10 16:48:26 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-10
+Sun Dec 10 16:48:27 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-10
+Sun Dec 10 16:48:28 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-10
+Sun Dec 10 16:48:29 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-10
+Sun Dec 10 16:48:30 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-10
+Sun Dec 10 16:48:31 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-10
+Sun Dec 10 16:48:32 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-10
+Sun Dec 10 16:48:33 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-10
+Sun Dec 10 16:48:34 CST 2017::pool-1-thread-2
+Sun Dec 10 16:48:35 CST 2017::pool-1-thread-3
+Sun Dec 10 16:48:35 CST 2017::pool-1-thread-1
+Sun Dec 10 16:48:35 CST 2017::pool-1-thread-5
+Sun Dec 10 16:48:35 CST 2017::pool-1-thread-4
+Sun Dec 10 16:48:35 CST 2017::pool-1-thread-8
+Sun Dec 10 16:48:35 CST 2017::pool-1-thread-7
+Sun Dec 10 16:48:35 CST 2017::pool-1-thread-9
+Sun Dec 10 16:48:35 CST 2017::pool-1-thread-6
+Sun Dec 10 16:48:35 CST 2017::pool-1-thread-10
+从输出结果可以看到,线程池中建立了10个线程,线程池中的线程执行完毕就会释放,然后来了新的线程再继续创建.
+
+
+
+小思:上篇中还在思考怎样效率最高,和录入自己的单脑中,今天有了一个办法,就是和其他人讨论问题,
+或者讲给其他人,你能给别人讲明白了,就是自己真的懂了。和别人在讨论过程中，就会更加深刻，第二点是把知识转化为图，大脑对图的印象要深刻与文字。
+
+上篇大部分来自于《java并发编程》一是感觉这本书真的挺好的，二是，貌似可能“吃的不够多”，还不能自己消化了，可以吸收一些，
+需要反复的反刍。
