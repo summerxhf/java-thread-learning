@@ -266,6 +266,16 @@ class NewTask implements Runnable{
 }
 
 ```
+
+## 3.4 设置线程池的大小
+
+一般是cpu+1
+公式
+3 可以测试,每个任务对资源的需求量,用总资源除以每个任务需求量, 就是线程池的上限.
+
+## 3.5 管理队列任务
+
+
 # 4 携带结果的任务Callable和Future
 
 之前的文章介绍过Callable和future，下面是callable future 和线程的方式来实现，如下代码。
