@@ -194,19 +194,149 @@ java类库提供了灵活的线程池以及默认配置，可以通过调用Exec
 ### 3.3.1 newFixedThreadPool
 固定线程池的长度,每提交一个任务就创建一个线程，直到达线程池的最大长度，这时线程池的规模将不会再变化（如果某个线程由于发生了未预期的Exception而结束
 那么线程池将会补充一个线程）。
+代码如下:
+```
+package Executor;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * Created by fang on 2017/12/10.
+ * 创建一个定长的线程池,可控制并发的最大数,超出线程会在队列中等待,代码如下.
+ * 定长线程池的大小最好根据系统资源设置,如Runtime.getRuntime().availableProcessors()cpu处理器数.
+ */
+public class ThreadPoolExecutorDemo2 {
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);
+        for(int i = 0;i<10;i++){
+            final int index = i;
+            fixedThreadPool.execute(new Runnable() {
+                public void run() {
+                    System.out.println(index);
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
+}
+
+
+```
+
 ### 3.3.2 newCachedThreadPool
 创建一个可缓存的线程池，如果线程池的当前规**模超过了处理需求时，****那么将会回收空闲的线程，**而当需求增加时，则添加新的线程，线程的规模不存在
-任何的限制。
+任何的限制。代码如下:
+```
+package Executor;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * Created by fang on 2017/12/10.
+ * 是使用可缓存的线程池,如果需要处理的任务大于线程池的长度,可灵活回收线程,
+ * 若无可回收,则建立新的线程.
+ *
+ * 因为线程池无限大,所以当执行第二个任务的时候第一个任务已经执行完成,会复用第一个任务的线程,而不用每次都新建线程.
+ */
+public class ThreadPoolExecutorDemo1 {
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+        for(int i = 0;i<10;i++){
+            final int index = i;
+            Thread.sleep(index*1000);
+            cachedThreadPool.execute(new Runnable() {
+                public void run() {
+                    System.out.println(index);
+                }
+            });
+        }
+    }
+}
+
+```
 ### 3.3.3 newSingleThreadExecutor
 是一个单线程的Executor，它创建单个线程来执行任务，如果这个线程异常结束，会创建另外一个线程来替代。newSingleThreadExecutor能确保依照任务在队列中顺序
 来串行执行（如FIFO、FIFO、优先级）。
+```
+package Executor;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * Created by fang on 2017/12/10.
+ * 创建单线程化的线程池,只会用唯一的工作线程来执行,保证任务是按照(FIFO\LIFO,优先级来执行的)
+ */
+public class ThreadPoolExecutorDemo4 {
+    public static void main(String[] args) {
+        ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+        for(int i=0;i<10;i++){
+            final int index = i;
+            singleThreadExecutor.execute(new Runnable() {
+                public void run() {
+                    System.out.println(index);
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
+
+}
+
+```
 ### 3.3.1 newScheduledThreadPool
 newScheduledThreadPool创建了一个**固定长度的线程池，**而且以**延迟或者定时的方式来执行任务，**类似Timer。
 
 “从单个线程串行执行”到“为每个任务分配一个线程”，变成基于线程池的策略，将对应用程序的稳定性产生重大的 影响：Web服务器不会再在高负载情况下执行失败。
 由于服务器不会创建千万个线程来争夺有限的CPU和内存资源，因此服务器的性能将平缓的降低。
 通过Executor，可以实现各种调优、管理、监视、记录日志、错误报告和其他功能，如果不使用任务的执行框架，增加这些功能是十分困难的。
+```
+package Executor;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Created by fang on 2017/12/10.
+ * 创建一个定长的线程池,支持定时以及周期性任务执行。代码如下。
+ *
+ */
+public class ThreadPoolExecutorDemo3 {
+    public static void main(String[] args) throws InterruptedException {
+        //延期3s执行
+        ScheduledExecutorService scheduledThreadPool1  = Executors.newScheduledThreadPool(5);
+        for(int i = 0;i<10;i++){
+            scheduledThreadPool1.schedule(new Runnable() {
+                public void run() {
+                    System.out.println("delay 3 seconds");
+                }
+            },3,TimeUnit.SECONDS);
+        }
+
+        //表示延迟1s后每3s执行一次.
+        ScheduledExecutorService scheduledThreadPool2 = Executors.newScheduledThreadPool(5);
+        scheduledThreadPool2.scheduleAtFixedRate(new Runnable() {
+            public void run() {
+                System.out.println("delay 1 seconds, and excute every 3 seconds");
+            }
+        }, 1, 3, TimeUnit.SECONDS);
+    }
+}
+
+```
 ## 3.4 Executor的生命周期
 
 可以创建一个Executor，但如何关闭Executor？Executor创建线程来执行任务。但JVM只有在所有（非守护）线程全部终止后才会退出（Executor所有线程自行完毕后退出）
@@ -268,13 +398,37 @@ class NewTask implements Runnable{
 ```
 
 ## 3.4 设置线程池的大小
-
-一般是cpu+1
-公式
-3 可以测试,每个任务对资源的需求量,用总资源除以每个任务需求量, 就是线程池的上限.
+看了《编发编程实战》中以及并发编程网中的部分，整理如下。
+一般来说，大家认为线程池的大小经验值应该是这样设置：
+（1）如果是CPU密集型，线程池的大小设置为N+1；
+（2）如果是IO密集型，则线程池的大小设置为2N+1；
+在IO优化中，这样的估算公式可能会更合适：
+最佳线程数目 =( (线程等待时间 +线程CPU时间）/线程cpu时间) *cpu数目
+显然,线程等待时间越长需要的线程数越多, 线程CPU时间所占比例越高, 需要线程越少.  IO等待-->需要的线程多  CPU等待高-->需要的总线程会少
+例如:
+平均每个线程CPU时间0.5s, 而线程等待时间1.5s, CPU核数8, 根据公式得到((0.5+1.5)/0.5)*8 = 32
+转化公式:
+最佳线程数 = (线程等待时间与cpu时间比 + 1) * CPU数目
 
 ## 3.5 管理队列任务
 
+用于保存等待执行的任务阻塞队列,可以选择以下阻塞队列。
+ArrayBlockingQueue：一个基于数组结构的有界阻塞队列，此队列按照（先进先出FIFO）原则对元素进行排序。
+LinkedBlockingQueue：一个基于链表结构的阻塞队列，也是按照FIFO原则对元素排序。吞吐量高于ArrayBlockingQueue，静态工厂方法
+Executors.newFixedThreadPool()使用了这个队列。
+
+SynchronousQueue：一个不存储元素的阻塞队列，每个插入必须要等待到另一个线程调用移除操作，否则插入操作一直处于阻塞状态，
+吞吐量要高于Linked-BlokingQueue，静态工厂方法Executors.newCachedThreadpool使用了这个队列。
+
+PriorityBlockingQueue：一个具有优先级的无限阻塞队列。
+
+## 3.6任务饱和策略
+当有界队列被填满后，说明任务队列处于饱和状态，必须采用一种策略处理提交的新任务。这个策略默认情况下是AbortPolicy，表示无法处理新任务
+抛出异常。在jdk1.5中提供了4中饱和策略。
+ 1. AbortPolicy:终止策略,直接抛出异常。
+ 2. CallerRunsPolicy：只用调用者所在的线程来运行任务。
+ 3. DiscardOldestPolicy：丢弃队列里最近的一个任务，并执行当前任务。
+ 4. DiscardPolicy：不处理，丢弃掉。
 
 # 4 携带结果的任务Callable和Future
 
