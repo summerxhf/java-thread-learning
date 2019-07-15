@@ -14,5 +14,6 @@ public class BlockingQueueDemo {
         BlockingQueue<Integer> queue = new LinkedBlockingDeque<>(10);
         new Thread(new Producer(queue)).start();
         new Thread(new Consumer(queue)).start();
+
     }
 }
