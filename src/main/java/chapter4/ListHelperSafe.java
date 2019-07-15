@@ -12,6 +12,7 @@ import java.util.List;
  * User: XINGHAIFANG
  * Date: 2019/7/12
  * Time: 16:51
+ * 若没有则添加
  * 锁定的全局变量list, 对list是同一把锁;
  */
 @ThreadSafe
