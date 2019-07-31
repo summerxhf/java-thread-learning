@@ -2,6 +2,7 @@ package chapter11;
 
 import net.jcip.annotations.GuardedBy;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -13,10 +14,13 @@ import java.util.Set;
  * 减小锁的粒度,对锁进行分解;
  */
 public class ServerStatus {
-    @GuardedBy("this")
-    public final Set<String>  users;
-    @GuardedBy("this")
-    public final Set<String> queries;
+    @GuardedBy("users") public final Set<String> users;
+    @GuardedBy("queries") public final Set<String> queries;
+
+    public ServerStatus() {
+        users = new HashSet<String>();
+        queries = new HashSet<String>();
+    }
 
     public synchronized void addUser(String u){
         users.add(u);
