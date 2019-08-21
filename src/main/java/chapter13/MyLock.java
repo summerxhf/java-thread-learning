@@ -9,7 +9,7 @@ import java.util.concurrent.locks.Condition;
  * Date: 2019/8/20
  * Time: 17:29
  */
-public interface Lock {
+public interface MyLock {
     void lock();
     void lockInterruptibly() throws InterruptedException;
     boolean tryLock();

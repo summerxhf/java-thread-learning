@@ -1,6 +1,7 @@
 package chapter13;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -12,7 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * 带有时间限制操作中实现独占锁;
  */
 public class LockWithTimeLimit {
-    private Lock lock = (Lock) new ReentrantLock();
+    private Lock lock =  new ReentrantLock();
     public boolean trySendOnSharedLine(String message,
                                        long timeout, TimeUnit timeUnit)throws InterruptedException{
         long nanosToLock = timeUnit.toNanos(timeout)-estimatedNanosToSend(message);

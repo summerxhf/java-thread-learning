@@ -63,7 +63,7 @@ public class DeadLockAvoidance {
         }
     }
     class Account{
-        public Lock lock;
+        public MyLock lock;
 
         void debit(DollarAmount d){
         }
